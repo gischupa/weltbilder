@@ -133,6 +133,10 @@
 </div>
 
 </section>
+<section class="slide level2">
+
+<script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+</section>
 <section id="aber-zuerst" class="title-slide slide level1 center">
 <h1>Aber zuerst …</h1>
 
@@ -400,6 +404,215 @@ Die Methode ist korrekt, Abweichungen sind Messfehler!</p>
 <span class="fragment">Hausarrest</span><br>
 <span class="fragment">1992 Entschuldigung der Kirche</span></p>
 </div>
+</section></section>
+<section>
+<section id="keppler---details" class="title-slide slide level1 center">
+<h1>Keppler - Details</h1>
+
+</section>
+<section id="keppler---gesetz-1" class="slide level2">
+<h2>Keppler - Gesetz 1</h2>
+</section>
+<section class="slide level2">
+
+<p>Die Bahn eines jeden Planeten ist eine Ellipse, wobei die Sonne in einem der beiden Brennpunkte steht.</p>
+<p><strong>Was ist eine Ellipse?</strong></p>
+<div class="box-40">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/01-Ellipse-Kegelschnitt.svg/960px-01-Ellipse-Kegelschnitt.svg.png"></p>
+<figcaption>Kegelschnitt</figcaption>
+</figure>
+</div>
+</div>
+</section>
+<section id="keplersches-gesetz" class="slide level2">
+<h2>1. Keplersches Gesetz</h2>
+<div id="kepler1">
+
+</div>
+<script>
+
+let sketch1 = function(p) {
+
+  let a = 250;
+  let b = 180;
+  let c;
+  let angle = 0;
+  let speed = 0.01;
+
+  p.setup = function() {
+    let canvas = p.createCanvas(800, 500);
+    canvas.parent("kepler1");
+    c = Math.sqrt(a*a - b*b);
+  };
+
+  p.draw = function() {
+    p.background(10,15,30);
+    p.translate(p.width/2, p.height/2);
+
+    // Ellipse
+    p.noFill();
+    p.stroke(180);
+    p.strokeWeight(2);
+    p.ellipse(0,0,2*a,2*b);
+
+    // Brennpunkte
+    let focus1 = p.createVector(-c,0);
+    let focus2 = p.createVector(c,0);
+
+    p.fill(255,200,0);
+    p.noStroke();
+    p.circle(focus2.x, focus2.y, 14); // Sonne rechts
+
+    p.fill(200);
+    p.circle(focus1.x, focus1.y, 10);
+
+    // Planet
+    let x = a * Math.cos(angle);
+    let y = b * Math.sin(angle);
+
+    let planet = p.createVector(x,y);
+
+    // Linien
+    p.stroke(100,150,255);
+    p.strokeWeight(1.5);
+    p.line(planet.x, planet.y, focus1.x, focus1.y);
+    p.line(planet.x, planet.y, focus2.x, focus2.y);
+
+    // Planet zeichnen
+    p.fill(120,180,255);
+    p.noStroke();
+    p.circle(planet.x, planet.y, 12);
+
+    angle += speed;
+  };
+};
+
+new p5(sketch1);
+
+</script>
+</section>
+<section id="keppler---gesetz-2" class="slide level2">
+<h2>Keppler - Gesetz 2</h2>
+</section>
+<section class="slide level2">
+
+<div class="smaller">
+<p>Die Geschwindigkeit der Planeten auf ihrer Bahnellipse ist nicht konstant, sondern variiert so, dass ein von der Sonne zum Planeten gezogener Fahrstrahl in gleichen Zeitabschnitten gleich große Flächen überstreicht.</p>
+</div>
+</section>
+<section class="slide level2">
+
+<div id="kepler-sketch">
+
+</div>
+<script>
+
+let a = 260;
+let e = 0.6;
+let b;
+
+let M = 0;
+let n = 0.01;
+let deltaT = 25;
+
+let sketch = function(p) {
+
+  p.setup = function() {
+    let canvas = p.createCanvas(1000, 500);
+    canvas.parent("kepler-sketch");
+    b = a * Math.sqrt(1 - e * e);
+  };
+
+  p.draw = function() {
+    p.background(10,15,30);
+    p.translate(p.width/2, p.height/2);
+
+    p.fill(255,200,0);
+    p.noStroke();
+    p.circle(0,0,16);
+
+    p.noFill();
+    p.stroke(180);
+    p.strokeWeight(2);
+    drawOrbit(p);
+
+    let E1 = solveKepler(M, e);
+    let p1 = positionFromE(p, E1);
+
+    let M2 = M + n * deltaT;
+    let E2 = solveKepler(M2, e);
+    let p2 = positionFromE(p, E2);
+
+    p.fill(100,150,255,120);
+    p.noStroke();
+    p.beginShape();
+    p.vertex(0,0);
+
+    let steps = 40;
+    for(let i=0;i<=steps;i++){
+      let Ei = p.lerp(E1,E2,i/steps);
+      let pi = positionFromE(p,Ei);
+      p.vertex(pi.x,pi.y);
+    }
+
+    p.endShape(p.CLOSE);
+
+    p.stroke(150,200,255);
+    p.strokeWeight(2);
+    p.line(0,0,p1.x,p1.y);
+    p.line(0,0,p2.x,p2.y);
+
+    p.fill(255);
+    p.noStroke();
+    p.circle(p1.x,p1.y,10);
+    p.circle(p2.x,p2.y,10);
+
+    M += n;
+  };
+};
+
+new p5(sketch);
+
+function solveKepler(M, e){
+  let E = M;
+  for(let i=0;i<6;i++){
+    E -= (E - e*Math.sin(E) - M)/(1 - e*Math.cos(E));
+  }
+  return E;
+}
+
+function positionFromE(p,E){
+  let x = -a*(Math.cos(E)-e);
+  let y = b*Math.sin(E);
+  return p.createVector(x,y);
+}
+
+function drawOrbit(p){
+  p.beginShape();
+  for(let E=0;E<p.TWO_PI+0.05;E+=0.05){
+    let pi = positionFromE(p,E);
+    p.vertex(pi.x,pi.y);
+  }
+  p.endShape(p.CLOSE);
+}
+
+</script>
+</section>
+<section class="slide level2">
+
+<h3 id="keppler---gesetz-3">Keppler - Gesetz 3</h3>
+</section>
+<section class="slide level2">
+
+<p>Die Quadrate der Umlaufzeiten je zweier Planeten verhalten sich zueinander wie die Kuben (die dritten Potenzen) der großen Halbachsen ihrer Bahnellipsen.</p>
+<div class="fragment">
+<p><span class="math display">\[\frac{T_1^2}{T_2^2} = \frac{a_1^3}{a_2^3}\]</span></p>
+</div>
+</section>
+<section id="section" class="slide level2">
+<h2></h2>
 <div class="smaller">
 
 </div>
@@ -711,7 +924,7 @@ Die Methode ist korrekt, Abweichungen sind Messfehler!</p>
       }
         var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
         var mailtoRegex = new RegExp(/^mailto:/);
-          var filterRegex = new RegExp('/' + window.location.host + '/');
+          var filterRegex = new RegExp("https:\/\/gischupa\.github\.io\/weltbilder\/");
         var isInternal = (href) => {
             return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
         }
